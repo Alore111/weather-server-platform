@@ -97,6 +97,35 @@ def register_user(user):
             print(f"注册失败: {e}")
             return {"msg": "注册失败"}
 
+# 注册用户
+def register_user(user):
+    database = Database()
+    # 连接数据库
+    with database.connect() as connection:
+        try:
+            with connection.cursor() as cursor:
+                # 检查用户名是否已存在
+                if check_username_exists(cursor, user.username):
+                    # print("用户名已存在")
+                    return {"msg": "用户名已存在"}
+                
+                # 对密码进行哈希加密
+                hashed_password = hash_password(user.password)
+                
+                # 创建一个新用户记录
+                register_time = datetime.now()
+                sql = "INSERT INTO 3ct_user (username, qq, pwd, register_time, is_vip, login_times, request_times) VALUES (%s, %s, %s, %s, %s, %s, %s)"
+                cursor.execute(sql, (user.username, user.qq, hashed_password, register_time, 0, 0, 0))
+        
+            # 提交更改
+            connection.commit()
+            # print("注册成功！")
+            return {"msg": "注册成功"}
+
+        except pymysql.Error as e:
+            print(f"注册失败: {e}")
+            return {"msg": "注册失败"}
+
 # 校验用户登录
 def authenticate_user(username_or_qq, password):
     # 连接数据库

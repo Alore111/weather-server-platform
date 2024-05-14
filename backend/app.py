@@ -106,7 +106,7 @@ def register():
 
     # 创建用户对象
     user = sql.User(username, password, qq)
-    register_msg = sql.register_3ct_user(user)
+    register_msg = sql.register_user(user)
     if register_msg['msg'] == "注册成功":
         return jsonify({'message': '注册成功',
                         'code': 200
