@@ -14335,7 +14335,7 @@ a {
         width: 100%;
         height: 2px;
         content: "";
-        background-color: #7eb9d7;
+        background-color: #0284c7;
         visibility: hidden;
         transform: translateY(.375rem);
         transform-origin: 50% 50%;
@@ -24405,7 +24405,7 @@ a.text-earth-lighter:hover {
     content: "\f526"
 }
 
-.fa-dice-three:before {
+.fa-cloud:before {
     content: "\f527"
 }
 

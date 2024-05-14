@@ -18,8 +18,11 @@ export default defineConfig({
   // 配置前端服务地址和端口
   server: {
     host: '0.0.0.0',
-    port: 8092,
+    port: 8099,
     // 是否开启 https
     https: false,
   },
+  // 设置反向代理，跨域
+  proxy: {
+  }
 })
