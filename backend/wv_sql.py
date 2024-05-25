@@ -23,38 +23,6 @@ class User:
         self.password = password
         self.qq = qq
 
-class ActivityInfo:
-    def __init__(self, ektId=None, ActivityName=None, ActivityTypeText=None, ActivityAddressAreaStr=None, ActivityAddress=None, ActivityTime=None, ActScore=None, ActivityIntroduction=None, YearTerm=None, ApplyOrgName=None, ActivityLevelText=None, ModuleCodeText=None, SponsorNames=None, OrganizerNames=None, ActivityQDDate=None, IsNeedSignInText=None, IsNeedSignOutText=None, ActivityQTDate=None, IsLimitStuNumText=None, LimitStuNumber=None, IsSignExamText=None, IsHandInHomeWorkText=None, GradeLimit=None, SexStr=None, CollegeLimitStr=None, SignWayText=None, CoverSock=None, longitude=None, latitude=None, InsertTime=None):
-        self.ektId = ektId
-        self.ActivityName = ActivityName
-        self.ActivityTypeText = ActivityTypeText
-        self.ActivityAddressAreaStr = ActivityAddressAreaStr
-        self.ActivityAddress = ActivityAddress
-        self.ActivityTime = ActivityTime
-        self.ActScore = ActScore
-        self.ActivityIntroduction = ActivityIntroduction
-        self.YearTerm = YearTerm
-        self.ApplyOrgName = ApplyOrgName
-        self.ActivityLevelText = ActivityLevelText
-        self.ModuleCodeText = ModuleCodeText
-        self.SponsorNames = SponsorNames
-        self.OrganizerNames = OrganizerNames
-        self.ActivityQDDate = ActivityQDDate
-        self.IsNeedSignInText = IsNeedSignInText
-        self.IsNeedSignOutText = IsNeedSignOutText
-        self.ActivityQTDate = ActivityQTDate
-        self.IsLimitStuNumText = IsLimitStuNumText
-        self.LimitStuNumber = LimitStuNumber
-        self.IsSignExamText = IsSignExamText
-        self.IsHandInHomeWorkText = IsHandInHomeWorkText
-        self.GradeLimit = GradeLimit
-        self.SexStr = SexStr
-        self.CollegeLimitStr = CollegeLimitStr
-        self.SignWayText = SignWayText
-        self.CoverSock = CoverSock
-        self.longitude = longitude
-        self.latitude = latitude
-        self.InsertTime = InsertTime or datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
 def hash_password(password):
     # 使用SHA-256哈希函数对密码进行加密
@@ -64,7 +32,7 @@ def hash_password(password):
 # 检查用户名是否已存在
 def check_username_exists(cursor, username):
     # 查询数据库，检查用户名是否已经存在
-    sql = "SELECT * FROM user WHERE username = %s"
+    sql = "SELECT * FROM users WHERE username = %s"
     cursor.execute(sql, (username,))
     return cursor.fetchone() is not None
 
@@ -85,37 +53,8 @@ def register_user(user):
                 
                 # 创建一个新用户记录
                 register_time = datetime.now()
-                sql = "INSERT INTO user (username, qq, pwd, register_time, is_vip, login_times, request_times) VALUES (%s, %s, %s, %s, %s, %s, %s)"
-                cursor.execute(sql, (user.username, user.qq, hashed_password, register_time, 0, 0, 0))
-        
-            # 提交更改
-            connection.commit()
-            # print("注册成功！")
-            return {"msg": "注册成功"}
-
-        except pymysql.Error as e:
-            print(f"注册失败: {e}")
-            return {"msg": "注册失败"}
-
-# 注册用户
-def register_user(user):
-    database = Database()
-    # 连接数据库
-    with database.connect() as connection:
-        try:
-            with connection.cursor() as cursor:
-                # 检查用户名是否已存在
-                if check_username_exists(cursor, user.username):
-                    # print("用户名已存在")
-                    return {"msg": "用户名已存在"}
-                
-                # 对密码进行哈希加密
-                hashed_password = hash_password(user.password)
-                
-                # 创建一个新用户记录
-                register_time = datetime.now()
-                sql = "INSERT INTO 3ct_user (username, qq, pwd, register_time, is_vip, login_times, request_times) VALUES (%s, %s, %s, %s, %s, %s, %s)"
-                cursor.execute(sql, (user.username, user.qq, hashed_password, register_time, 0, 0, 0))
+                sql = "INSERT INTO users (username, qq, email, pwd, register_time, role_id, login_times, request_times) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"
+                cursor.execute(sql, (user.username, user.qq, (str(user.qq) + '@qq.com'), hashed_password, register_time, 1, 0, 0))
         
             # 提交更改
             connection.commit()
@@ -143,7 +82,7 @@ def authenticate_user(username_or_qq, password):
                 
                 # 查询数据库，检查用户名、QQ号或 QQ 邮箱是否存在
                 sql = """
-                    SELECT * FROM user 
+                    SELECT * FROM users 
                     WHERE username = %s OR qq = %s
                 """
                 # 执行查询，查询 QQ号两次，一个直接查询，一个通过 email 查询
@@ -172,6 +111,25 @@ def authenticate_user(username_or_qq, password):
             print(f"认证失败: {e}")
             return False
 
+# 刷新在线用户登录时间
+def refersh_user_login_time(user_id):
+    database = Database()
+    login_time = datetime.now()
+    # 连接数据库
+    with database.connect() as connection:
+        try:
+            with connection.cursor() as cursor:
+                # 更新在线用户表中的登录时间
+                sql = "UPDATE users SET last_login_time = %s WHERE id = %s"
+                cursor.execute(sql, (login_time, user_id))
+                
+                # 提交更改
+                connection.commit()
+                # print("刷新在线用户登录时间成功！")
+                
+        except pymysql.Error as e:
+            print(f"刷新在线用户登录时间失败: {e}")
+
 def change_password(username, old_password, new_password):
     database = Database()
     # 连接数据库
@@ -179,7 +137,7 @@ def change_password(username, old_password, new_password):
         try:
             with connection.cursor() as cursor:
                 # 查询数据库，检查用户名是否存在
-                sql = "SELECT * FROM user WHERE username = %s"
+                sql = "SELECT * FROM users WHERE username = %s"
                 cursor.execute(sql, (username,))
                 user = cursor.fetchone()
                 
@@ -197,7 +155,7 @@ def change_password(username, old_password, new_password):
                 if user['pwd'] == hashed_old_password:
                     # 如果密码匹配，更新密码
                     hashed_new_password = hash_password(new_password)
-                    sql_update = "UPDATE user SET pwd = %s WHERE username = %s"
+                    sql_update = "UPDATE users SET pwd = %s WHERE username = %s"
                     cursor.execute(sql_update, (hashed_new_password, username))
                     
                     # 提交更改
@@ -229,7 +187,7 @@ def reset_password(username, new_password):
         try:
             with connection.cursor() as cursor:
                 # 查询数据库，检查用户名是否存在
-                sql = "SELECT * FROM user WHERE username = %s"
+                sql = "SELECT * FROM users WHERE username = %s"
                 cursor.execute(sql, (username,))
                 user = cursor.fetchone()
                 
@@ -244,7 +202,7 @@ def reset_password(username, new_password):
                 # 对输入的密码进行哈希加密，并与数据库中的加密密码进行比对
                 hashed_new_password = hash_password(new_password)
                 
-                sql_update = "UPDATE user SET pwd = %s WHERE username = %s"
+                sql_update = "UPDATE users SET pwd = %s WHERE username = %s"
                 cursor.execute(sql_update, (hashed_new_password, username))
                 
                 # 提交更改
@@ -278,7 +236,7 @@ def get_username_by_qq_number(qq_number):
                     # 否则使用提供的凭据作为 QQ 号
                     qq_number = qq_number
                     
-                sql = "SELECT username FROM user WHERE qq = %s"
+                sql = "SELECT username FROM users WHERE qq = %s"
                 cursor.execute(sql, (qq_number,))
                 
                 # 获取查询结果
@@ -295,7 +253,7 @@ def get_username_by_qq_number(qq_number):
         print(f"查询用户名失败: {e}")
         return None
 
-# 获取用户信息（包含绑定平台信息）
+# 获取用户信息
 def get_user_info_by_username(username):
     database = Database()
     # 连接数据库
@@ -303,7 +261,7 @@ def get_user_info_by_username(username):
         try:
             with connection.cursor() as cursor:
                 # 查询用户信息
-                sql_user = "SELECT id, username, qq, is_vip, is_tester, login_times, request_times FROM user WHERE username = %s"
+                sql_user = "SELECT id, username, qq, role_id, login_times, request_times FROM users WHERE username = %s"
                 cursor.execute(sql_user, (username,))
                 user = cursor.fetchone()
                 if user:
@@ -312,8 +270,7 @@ def get_user_info_by_username(username):
                         "id": user["id"],
                         "username": user["username"],
                         "qq": user["qq"],
-                        "is_vip": user["is_vip"],
-                        "is_tester": user["is_tester"],
+                        "role_id": user["role_id"],
                         "login_times": user["login_times"],
                         "request_times": user["request_times"]
                     }
@@ -325,31 +282,6 @@ def get_user_info_by_username(username):
             print(f"获取用户信息失败: {e}")
             return {"error": "获取用户信息失败"}
 
-
-
-def add_online_user(user_id):
-    database = Database()
-    login_time = datetime.now()
-    # 连接数据库
-    with database.connect() as connection:
-        try:
-            with connection.cursor() as cursor:
-                # 检查用户是否存在于用户表中
-                sql_check_user = "SELECT * FROM user WHERE id = %s"
-                cursor.execute(sql_check_user, (user_id,))
-                user = cursor.fetchone()
-                if user:
-                    # 用户存在，可以添加到在线用户表中
-                    sql_add_online_user = "INSERT INTO 3ct_online_user (user_id, login_time) VALUES (%s, %s)"
-                    cursor.execute(sql_add_online_user, (user_id, login_time))
-                    connection.commit()
-                    # print("添加在线用户成功！")
-                else:
-                    print("用户不存在，无法添加到在线用户表中")
-
-        except pymysql.Error as e:
-            print(f"添加在线用户失败: {e}")
-
 # 增加用户登录次数
 def increment_login_times(user_id):
     database = Database()
@@ -358,7 +290,7 @@ def increment_login_times(user_id):
         try:
             with connection.cursor() as cursor:
                 # 增加用户登录次数
-                sql = "UPDATE user SET login_times = login_times + 1 WHERE id = %s"
+                sql = "UPDATE users SET login_times = login_times + 1 WHERE id = %s"
                 cursor.execute(sql, (user_id,))
                 
                 # 提交更改
@@ -376,7 +308,7 @@ def increment_request_times(user_id):
         try:
             with connection.cursor() as cursor:
                 # 增加用户请求次数
-                sql = "UPDATE user SET request_times = request_times + 1 WHERE id = %s"
+                sql = "UPDATE users SET request_times = request_times + 1 WHERE id = %s"
                 cursor.execute(sql, (user_id,))
                 
                 # 提交更改
@@ -404,7 +336,7 @@ def get_username_by_qq_or_email(qq_or_email):
                     # 否则使用提供的凭据作为 QQ 号
                     qq_number = qq_or_email
                     
-                sql_get_username = "SELECT username FROM user WHERE qq = %s"
+                sql_get_username = "SELECT username FROM users WHERE qq = %s"
                 cursor.execute(sql_get_username, (qq_number,))
                 
                 username = cursor.fetchone()

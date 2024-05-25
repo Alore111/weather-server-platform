@@ -190,55 +190,6 @@ def checkResetToken():
                         'code': 200
         })
 
-@app.route('/api/getActivateFromStudentId', methods=['GET', 'POST'])
-def getActivateFromStudentId():
-    student_id = request.args.get('student_id')
-    
-    if( student_id=="" ):
-        return jsonify({'message': '参数不完整',
-                        'code': 400
-        })
-
-    if sql.check_student_id_activation(student_id):
-        return jsonify({'message': '已激活',
-                        'code': 200
-        })
-    else:
-        return jsonify({'message': '未激活',
-                        'code': 400
-        })
-    
-
-    
-@app.route('/api/activate', methods=['POST'])
-def activate():
-    identifier = request.form.get('identifier')
-    activate_type = request.form.get('activate_type')
-    user_id = request.form.get('user_id')
-    
-    if( identifier=="" or activate_type=="" or user_id=="" ):
-        return jsonify({'message': '参数不完整',
-                        'code': 400
-    })
-    if( activate_type != "code" and activate_type != "student_id" ):
-        return jsonify({'message': '无效的激活类型',
-                        'code': 400
-    })
-
-    act_resp = sql.activate_account(identifier, activate_type, user_id)
-    if act_resp['success'] == False:
-        return jsonify({'message': act_resp['msg'],
-                        'code': 400
-        })
-    else:
-        # 如果是学号激活则自动绑定第二课堂
-        if activate_type == "student_id":
-            sql.bind_account_to_platform(user_id, 1)
-            
-        return jsonify({'message': act_resp['msg'],
-                        'code': 200
-        })
-
 
 
 
@@ -300,4 +251,4 @@ def check_captcha():
 
 
 if __name__ == '__main__':
-    app.run(debug=False, port=9001, threaded=True)
+    app.run(debug=True, port=9001, threaded=True)
