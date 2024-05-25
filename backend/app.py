@@ -4,6 +4,9 @@ from flask_login import LoginManager, UserMixin, login_user, logout_user, login_
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity, unset_jwt_cookies
 from captcha.image import ImageCaptcha
 from datetime import timedelta
+import requests
+import json 
+import csv
 import random
 import wv_sql as sql
 import email_post as ep
@@ -249,6 +252,50 @@ def check_captcha():
                         'code': 400
                         })
 
+@app.route('/api/weather/checkLocation', methods=['GET'])
+def check_location():
+    location = request.args.get('location')
+    
+    args = {
+        'location': location,
+        'key': '22da55be85c846dc8a0b57f6ea985808'
+    }
+
+    location_id = requests.get('https://geoapi.qweather.com/v2/city/lookup', params=args).json()
+    # print(location_id)
+    if location_id['code'] == '200':
+        location_id = location_id.get('location')[0].get('id')
+        return jsonify({'message': '位置正确',
+                        'code': 200,
+                        'location_id': location_id
+                        })
+    
+    return jsonify({'message': '位置错误',
+                    'code': 400
+    })
+
+@app.route('/api/weather/now', methods=['GET'])
+def get_weather_now():
+    location = request.args.get('location')
+    
+    args = {
+        'location': location,
+        'key': '22da55be85c846dc8a0b57f6ea985808'
+    }
+
+    weather_now = requests.get('https://devapi.qweather.com/v7/weather/now', params=args).json()
+    # print(weather_now)
+    
+    if weather_now['code'] == '200':
+        return jsonify({'message': '天气获取成功',
+                        'code': 200,
+                        'data': weather_now.get('now')
+                        })
+    
+    return jsonify({'message': '天气获取失败',
+                    'code': 400
+    })
 
 if __name__ == '__main__':
+
     app.run(debug=True, port=9001, threaded=True)

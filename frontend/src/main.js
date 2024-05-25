@@ -10,7 +10,7 @@ import 'element-plus/dist/index.css'
 const app = createApp(App)
 
 
-app.config.globalProperties.$serverUrl = 'https://wv-server-qyc.2ndtool.top'
+app.config.globalProperties.$serverUrl = 'https://wv-server-test.2ndtool.top'
 
 app.use(router)
 app.use(ElementPlus)

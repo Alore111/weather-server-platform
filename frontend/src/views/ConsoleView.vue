@@ -52,12 +52,14 @@
                                 <span style="font-weight: 600;">数据下载</span>
                             </el-menu-item>
                         </router-link>
-                        <el-menu-item index="4" disabled>
-                            <el-icon>
-                                <i class="fas fa-pause"></i>
-                            </el-icon>
-                            <span>敬请期待</span>
-                        </el-menu-item>
+                        <router-link to="/console/temForecast">
+                            <el-menu-item index="4">
+                                <el-icon>
+                                    <i class="fas fa-temperature-high"></i>
+                                </el-icon>
+                                <span style="font-weight: 600;">气温预测</span>
+                            </el-menu-item>
+                        </router-link>
                     </el-menu>
                     <div
                         style="text-align: center; transform: scale(0.8); bottom: 20px; position: fixed; width: 200px;">
@@ -79,10 +81,10 @@
     <!-- 公告对话框 -->
     <el-dialog v-if="false" v-model="announcementDialogVisible" title="活动通知" width="500" align-center>
         <p>本平台才开始运营两天用户人数就已经破百了，为表感谢，打算开展如下活动：</p>
-        <p>在本周五（4月26日）作者会发布若干个<span style="color: red;">免费激活码</span>在<a
-                href="https://qm.qq.com/q/O67Q2S9nKE" target="_blank">交流群</a>，详情可进群查看。</p>
-        <p>如果没有抢到也没关系，在本周五0点至周日晚12点期间，<a href="https://afdian.net/item/2553a49e014811efafd352540025c377" target="_blank">商店页面</a>也会<span
-                style="color: red;">打六折</span>，到时候也可以优惠购买。</p>
+        <p>在本周五（4月26日）作者会发布若干个<span style="color: red;">免费激活码</span>在<a href="https://qm.qq.com/q/O67Q2S9nKE"
+                target="_blank">交流群</a>，详情可进群查看。</p>
+        <p>如果没有抢到也没关系，在本周五0点至周日晚12点期间，<a href="https://afdian.net/item/2553a49e014811efafd352540025c377"
+                target="_blank">商店页面</a>也会<span style="color: red;">打六折</span>，到时候也可以优惠购买。</p>
         <template #footer>
             <div class="dialog-footer">
                 <el-button type="primary" @click="announcementDialogVisible = false">

@@ -68,6 +68,11 @@ const router = createRouter({
           path: 'dataDownload',
           name: 'console-dataDownload',
           component: () => import('../views/DataDownloadView.vue')
+        },
+        {
+          path: 'temForecast',
+          name: 'console-temForecast',
+          component: () => import('../views/TemForecastView.vue')
         }
       ]
     }

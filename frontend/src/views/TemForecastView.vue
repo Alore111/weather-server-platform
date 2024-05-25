@@ -1,6 +1,6 @@
 <template>
     <div>
-        <h1>This is Data Download page</h1>
+        <h1>This is Tem Forecast page</h1>
     </div>
 </template>
 
