@@ -65,6 +65,11 @@ const router = createRouter({
           component: () => import('../views/WeatherDisplayView.vue')
         },
         {
+          path: 'weatherDisplayNation',
+          name: 'console-weatherDisplayNation',
+          component: () => import('../views/WeatherDisplayNationView.vue')
+        },
+        {
           path: 'dataDownload',
           name: 'console-dataDownload',
           component: () => import('../views/DataDownloadView.vue')

@@ -4,6 +4,7 @@ from flask_login import LoginManager, UserMixin, login_user, logout_user, login_
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity, unset_jwt_cookies
 from captcha.image import ImageCaptcha
 from datetime import timedelta
+import datetime
 import requests
 import json 
 import csv
@@ -295,6 +296,50 @@ def get_weather_now():
     return jsonify({'message': '天气获取失败',
                     'code': 400
     })
+
+@app.route('/api/weather/24h', methods=['GET'])
+def get_weather_hours():
+    location = request.args.get('location')
+    
+    args = {
+        'location': location,
+        'key': '22da55be85c846dc8a0b57f6ea985808'
+    }
+
+    weather_now = requests.get(f'https://devapi.qweather.com/v7/weather/24h', params=args).json()
+    # print(weather_now)
+    
+    if weather_now['code'] == '200':
+        return jsonify({'message': '天气获取成功',
+                        'code': 200,
+                        'data': weather_now.get('hourly')
+                        })
+    
+    return jsonify({'message': '天气获取失败',
+                    'code': 400
+    })
+
+@app.route('/api/weather/nationwide', methods=['GET'])
+def get_weather_nationwide():
+    timestamp = datetime.datetime.now().timestamp() * 1000
+
+    args = {
+        't': timestamp,
+    }
+
+    weather_now = requests.get('https://weather.cma.cn/api/map/weather/1', params=args).json()
+
+    # print(weather_now)
+    if weather_now.get('code') == 0:
+        return jsonify({'message': '天气获取成功',
+                        'code': 200,
+                        'data': weather_now.get('data')
+                        })
+    
+    return jsonify({'message': '天气获取失败',
+                    'code': 400
+                    })
+
 
 if __name__ == '__main__':
 
