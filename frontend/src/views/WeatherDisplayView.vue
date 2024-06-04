@@ -49,7 +49,7 @@
 
         <el-dialog v-model="dialogLocationVisible" title="切换地区" width="500">
             <el-form-item label="市/区/县" :label-width="formLabelWidth">
-                <el-input v-model="locationText" autocomplete="off" />
+                <el-input v-model="locationTextTemp" autocomplete="off" />
             </el-form-item>
             <template #footer>
                 <div class="dialog-footer">
@@ -94,6 +94,7 @@ export default {
             dialogLocationVisible: false,
             temp: 0,
             locationText: '双流',
+            locationTextTemp: '双流',
             location: '',
             chart: null,
         }
@@ -105,6 +106,7 @@ export default {
     },
     methods: {
         updateWeatherData() {
+            this.locationText = this.locationTextTemp;
             return fetch(this.$serverUrl + `/api/weather/checkLocation?location=${this.locationText}`)
                 .then(response => response.json())
                 .then(data => {
