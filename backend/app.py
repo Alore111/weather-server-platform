@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, make_response
+from flask import Flask, request, jsonify, make_response, send_file
 from flask_cors import CORS
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity, unset_jwt_cookies
@@ -8,6 +8,9 @@ import datetime
 import requests
 import json 
 import csv
+import os
+import sys
+from file import log_request, create_zip
 import random
 import wv_sql as sql
 import email_post as ep
@@ -340,7 +343,74 @@ def get_weather_nationwide():
                     'code': 400
                     })
 
+@app.route('/api/download', methods=['POST'])
+def download_files():
+    zip_name = request.form.get('zip_name')
+    start_date = request.form.get('start_date')
+    end_date = request.form.get('end_date')
+    note = request.form.get('note')
+
+    if not zip_name or not start_date or not end_date:
+        return jsonify({"error": "zip_name, start_date, end_date are required"}), 400
+    if not note:
+        note = ''
+
+    try:
+        # 创建压缩包并记录请求
+        zip_filename = create_zip(start_date, end_date, zip_name)
+        log_request(zip_name, start_date, end_date, note)
+
+        # 发送压缩包文件给前端
+        return send_file(zip_filename, as_attachment=True)
+    except Exception as e:
+        print(e)
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/logs', methods=['GET'])
+def get_logs():
+    root = os.path.dirname(sys.argv[0]) + '/file.txt'
+    if not os.path.exists(root):
+        return jsonify({"error": "Log file not found"}), 404
+    with open(root, 'r', encoding='utf-8') as f:
+        log_data = f.readlines()
+
+    log_entries = []
+    for line in log_data:
+        parts = line.strip().split(',')
+        if len(parts) == 4:
+            log_entries.append({
+                "zip_name": parts[0],
+                "start_date": parts[1],
+                "end_date": parts[2],
+                "note": parts[3]
+            })
+
+    return jsonify(log_entries)
+
+
+@app.route('/api/delete_log', methods=['DELETE'])
+def delete_log_entry():
+    line_number = request.args.get('line_number', type=int)
+    if line_number is None:
+        return jsonify({"错误": "缺少行号参数"}), 400
+
+    root = os.path.dirname(sys.argv[0]) + '/file.txt'
+    if not os.path.exists(root):
+        return jsonify({"错误": "未找到日志文件"}), 404
+
+    with open(root, 'r', encoding='utf-8') as f:
+        log_data = f.readlines()
+
+    if line_number < 1 or line_number > len(log_data):
+        return jsonify({"错误": "无效的行号"}), 400
+
+    del log_data[line_number - 1]
+
+    with open(root, 'w', encoding='utf-8') as f:
+        f.writelines(log_data)
+
+    return jsonify({"消息": "日志条目删除成功"}), 200
 
 if __name__ == '__main__':
 
-    app.run(debug=True, port=9001, threaded=True)
+    app.run(debug=False, port=9001, threaded=True)
