@@ -78,6 +78,20 @@ const router = createRouter({
           path: 'temForecast',
           name: 'console-temForecast',
           component: () => import('../views/TemForecastView.vue')
+        },
+        {
+          path: '/searchWeatherByCity',
+          name: 'searchWeatherByCity',
+          component: () => import('../views/migrate/Home/HomeView.vue')
+        }, {
+          path: "/city",
+          component: () => import("../views/migrate/City/City.vue")
+        }, {
+          path: "/weather",
+          component: () => import("../views/migrate/Home/components/Weather.vue")
+        }, {
+          path: '/news/:id',
+          component: () => import("../views/NewsDetail.vue")
         }
       ]
     }
