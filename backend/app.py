@@ -10,9 +10,10 @@ import json
 import csv
 import os
 import sys
-from file import log_request, create_zip
+from file import log_request, create_zip, log_download, create_zip_file, write_txt_files, fetch_data
 import random
 import wv_sql as sql
+from wv_sql import Database
 import email_post as ep
 
 
@@ -343,74 +344,101 @@ def get_weather_nationwide():
                     'code': 400
                     })
 
+# @app.route('/api/download', methods=['POST'])
+# def download_files():
+#     print(request.form)
+    # zip_name = request.form.get('zip_name')
+    # start_date = request.form.get('start_date')
+    # end_date = request.form.get('end_date')
+    # note = request.form.get('note')
+    #
+    #
+    # if not zip_name or not start_date or not end_date or not note:
+    #     return jsonify({"error": "zip_name, start_date, end_date, and note are required"}), 400
+    #
+    # try:
+    #     # 创建压缩包并记录请求
+    #     zip_filename = create_zip(start_date, end_date, zip_name)
+    #     log_request(zip_name, start_date, end_date, note)
+    #
+    #     # 发送压缩包文件给前端
+    #     return send_file(zip_filename, as_attachment=True)
+    # except Exception as e:
+    #     print(e)
+    #     return jsonify({"error": str(e)}), 500
+
+
 @app.route('/api/download', methods=['POST'])
 def download_files():
-    zip_name = request.form.get('zip_name')
-    start_date = request.form.get('start_date')
-    end_date = request.form.get('end_date')
-    note = request.form.get('note')
+    data = request.form
+    start_date = data.get('start_date')
+    end_date = data.get('end_date')
+    zip_name = data.get('zip_name')
+    note = data.get('note')
+    options = data.get('options')
+    options = json.loads(options)
 
-    if not zip_name or not start_date or not end_date:
-        return jsonify({"error": "zip_name, start_date, end_date are required"}), 400
-    if not note:
-        note = ''
+    # if not start_date or not end_date or not zip_name or not options:
+    #     return jsonify({'error': 'Missing required parameters'}), 400
+    #
+    db = Database()
+    raw_data,fields = fetch_data(db, start_date, end_date, options)
 
-    try:
-        # 创建压缩包并记录请求
-        zip_filename = create_zip(start_date, end_date, zip_name)
-        log_request(zip_name, start_date, end_date, note)
+    if not raw_data:
+        return jsonify({'error': 'No data found for the given date range'}), 404
 
-        # 发送压缩包文件给前端
-        return send_file(zip_filename, as_attachment=True)
-    except Exception as e:
-        print(e)
-        return jsonify({"error": str(e)}), 500
+    file_names = write_txt_files(raw_data,fields)
+    zip_buffer = create_zip_file(file_names, zip_name)
+    # 将下载记录写入数据库
+    log_download(db, zip_name, start_date, end_date, note, options)
+    return send_file(
+        zip_buffer,
+        mimetype='application/zip',
+        as_attachment=True,
+        download_name=f"{zip_name}.zip"
+    )
+
 
 @app.route('/api/logs', methods=['GET'])
 def get_logs():
-    root = os.path.dirname(sys.argv[0]) + '/file.txt'
-    if not os.path.exists(root):
-        return jsonify({"error": "Log file not found"}), 404
-    with open(root, 'r', encoding='utf-8') as f:
-        log_data = f.readlines()
+    db = Database()
+    connection = db.connect()
+    cursor = connection.cursor()
 
-    log_entries = []
-    for line in log_data:
-        parts = line.strip().split(',')
-        if len(parts) == 4:
-            log_entries.append({
-                "zip_name": parts[0],
-                "start_date": parts[1],
-                "end_date": parts[2],
-                "note": parts[3]
-            })
+    query = 'SELECT * FROM download_log'
+    cursor.execute(query)
+    logs = cursor.fetchall()
 
-    return jsonify(log_entries)
+    cursor.close()
+    connection.close()
+    return jsonify(logs)
 
 
-@app.route('/api/delete_log', methods=['DELETE'])
-def delete_log_entry():
-    line_number = request.args.get('line_number', type=int)
-    if line_number is None:
-        return jsonify({"错误": "缺少行号参数"}), 400
+@app.route('/api/delete_log/<int:log_id>', methods=['DELETE'])
+def delete_download_log(log_id):
+    db = Database()
+    connection = db.connect()
+    cursor = connection.cursor()
 
-    root = os.path.dirname(sys.argv[0]) + '/file.txt'
-    if not os.path.exists(root):
-        return jsonify({"错误": "未找到日志文件"}), 404
+    # 查询要删除的日志记录是否存在
+    query = 'SELECT * FROM download_log WHERE id = %s'
+    cursor.execute(query, (log_id,))
+    log = cursor.fetchone()
+    if not log:
+        cursor.close()
+        connection.close()
+        return jsonify({'error': 'Log not found'}), 404
 
-    with open(root, 'r', encoding='utf-8') as f:
-        log_data = f.readlines()
+    # 执行删除操作
+    delete_query = 'DELETE FROM download_log WHERE id = %s'
+    cursor.execute(delete_query, (log_id,))
+    connection.commit()
 
-    if line_number < 1 or line_number > len(log_data):
-        return jsonify({"错误": "无效的行号"}), 400
+    cursor.close()
+    connection.close()
+    return jsonify({'message': 'Log deleted successfully'})
 
-    del log_data[line_number - 1]
-
-    with open(root, 'w', encoding='utf-8') as f:
-        f.writelines(log_data)
-
-    return jsonify({"消息": "日志条目删除成功"}), 200
 
 if __name__ == '__main__':
 
-    app.run(debug=False, port=9001, threaded=True)
+    app.run(debug=True, port=9001, threaded=True)

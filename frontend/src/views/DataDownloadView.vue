@@ -20,12 +20,12 @@
       <el-menu-item index="2">下载记录</el-menu-item>
     </el-menu>
   </div>
-  
-  <div class="formDiv" v-if="activeIndex==1">
-    <h2 >天气数据下载</h2>
+
+  <div class="formDiv" v-if="activeIndex == 1">
+    <h2>天气数据下载</h2>
     <el-form
       ref="ruleFormRef"
-      style="max-width: 600px;display: flex;flex-direction: column;gap: 20px;"
+      style="max-width: 600px; display: flex; flex-direction: column; gap: 20px"
       :model="ruleForm"
       :rules="rules"
       label-width="auto"
@@ -33,10 +33,10 @@
       :size="formSize"
       status-icon
     >
-      <el-form-item label="文件名称" prop="name">
+      <el-form-item label="文件名称：" prop="name">
         <el-input v-model="ruleForm.name" />
       </el-form-item>
-      <el-form-item label="日期范围" required>
+      <el-form-item label="日期范围：" required>
         <el-col :span="11">
           <el-form-item prop="date1">
             <el-date-picker
@@ -67,54 +67,100 @@
           </el-form-item>
         </el-col>
       </el-form-item>
-
-      <el-form-item label="备注" prop="desc">
+      <el-form-item label="要素选择：">
+        <el-checkbox v-model="ruleForm.options.Station_Id_d" label="站点" />
+        <el-checkbox v-model="ruleForm.options.Lat" label="纬度" />
+        <el-checkbox v-model="ruleForm.options.Lon" label="经度" />
+        <el-checkbox v-model="ruleForm.options.Alti" label="海拔" />
+        <el-checkbox v-model="ruleForm.options.PRS_Sea_Avg" label="压强" />
+        <el-checkbox v-model="ruleForm.options.WIN_S_Max" label="最大风速" />
+        <el-checkbox
+          v-model="ruleForm.options.WIN_S_2mi_Avg"
+          label="2m平均风速"
+        />
+        <el-checkbox v-model="ruleForm.options.TEM_Avg" label="平均温度" />
+        <el-checkbox v-model="ruleForm.options.TEM_Max" label="最高温度" />
+        <el-checkbox v-model="ruleForm.options.TEM_Min" label="最低温度" />
+        <el-checkbox v-model="ruleForm.options.GST_Avg" label="地表平均温度" />
+        <el-checkbox
+          v-model="ruleForm.options.PRE_Time_2020"
+          label="降水量"
+        />
+        <el-checkbox v-model="ruleForm.options.SSH" label="海平面高度" />
+        <el-checkbox
+          v-model="ruleForm.options.CLO_Cov_Avg"
+          label="云平均覆盖度"
+        />
+        <el-checkbox
+          v-model="ruleForm.options.CLO_Cov_Low_Avg"
+          label="低云平均覆盖度"
+        />
+        <el-checkbox v-model="ruleForm.options.VIS_Min" label="最小可见度" />
+      </el-form-item>
+      <el-form-item label="备注：" prop="desc">
         <el-input v-model="ruleForm.desc" type="textarea" />
       </el-form-item>
       <el-form-item style="">
-        <div style="width:100%;display:flex;justify-content: center;">
-            <el-button type="primary" @click="submitForm(ruleFormRef)">
-          下载
-        </el-button>
-            <el-button @click="resetForm()">重置</el-button>
+        <div style="width: 100%; display: flex; justify-content: center">
+          <el-button type="primary" @click="submitForm(ruleFormRef)">
+            下载
+          </el-button>
+          <el-button @click="resetForm()">重置</el-button>
         </div>
-        
       </el-form-item>
     </el-form>
-                <div
-                        style="text-align: center; transform: scale(0.8); bottom: 50px; position: fixed; width: 500px;font-size:20px">
-                        <router-link class="link-fx fw-bold" to="#">
-                            <span style="margin-right:10px">天气数据由</span>
-                            <i class="fas fa-cloud"></i>
-                            <span class="fs-4 text-body-color">Weather Vista</span>
-                            <span style="margin-left:10px">提供下载</span>
-                        </router-link>
-                    </div>
+    <div
+      style="
+        text-align: center;
+        transform: scale(0.8);
+        bottom: 50px;
+        position: fixed;
+        width: 500px;
+        font-size: 20px;
+      "
+    >
+      <router-link class="link-fx fw-bold" to="#">
+        <span style="margin-right: 10px">天气数据由</span>
+        <i class="fas fa-cloud"></i>
+        <span class="fs-4 text-body-color">Weather Vista</span>
+        <span style="margin-left: 10px">提供下载</span>
+      </router-link>
+    </div>
   </div>
-  <div class="tableDiv" v-if="activeIndex==2">
+  <div class="tableDiv" v-if="activeIndex == 2">
     <el-table :data="tableData" style="width: 100%">
       <el-table-column type="index" label="编号" width="100" />
-    <el-table-column prop="zip_name" label="文件名称"  />
-    <el-table-column prop="start_date" label="起始时间"  />
-    <el-table-column prop="end_date" label="终止时间"  />
-    <el-table-column prop="note" label="备注"  />
-    <el-table-column  label="操作">
-      <template #default="scope">
-        <el-button type="text" size="medium" @click="del(scope.$index)">删除</el-button>
-      </template>
-    </el-table-column>
-  </el-table>
-  <div
-                        style="text-align: center; transform: scale(0.8); bottom: 50px; position: fixed; width: 500px;font-size:20px">
-                        <router-link class="link-fx fw-bold" to="#">
-                            <span style="margin-right:10px">天气数据由</span>
-                            <i class="fas fa-cloud"></i>
-                            <span class="fs-4 text-body-color">Weather Vista</span>
-                            <span style="margin-left:10px">提供下载</span>
-                        </router-link>
-                    </div>
+      <el-table-column prop="zip_name" label="文件名称" />
+      <el-table-column prop="start_date" label="起始时间" />
+      <el-table-column prop="end_date" label="终止时间" />
+      <el-table-column prop="options" label="要素" />
+      <el-table-column prop="note" label="备注" />
+      <el-table-column label="操作">
+        <template #default="scope">
+          <el-button type="text" size="medium" @click="del(scope.row)"
+            >删除</el-button
+          >
+        </template>
+      </el-table-column>
+    </el-table>
+    <div
+      style="
+        text-align: center;
+        transform: scale(0.8);
+        bottom: 50px;
+        position: fixed;
+        width: 500px;
+        font-size: 20px;
+      "
+    >
+      <router-link class="link-fx fw-bold" to="#">
+        <span style="margin-right: 10px">天气数据由</span>
+        <i class="fas fa-cloud"></i>
+        <span class="fs-4 text-body-color">Weather Vista</span>
+        <span style="margin-left: 10px">提供下载</span>
+      </router-link>
+    </div>
   </div>
-
 </template>
 
 // <script lang="ts" setup>
@@ -134,7 +180,6 @@ import { ru } from "element-plus/es/locale";
 const that = getCurrentInstance().appContext.config.globalProperties;
 const serverUrl = that.$serverUrl;
 const activeIndex = ref("1");
-
 
 interface RuleForm {
   name: string;
@@ -162,6 +207,24 @@ const ruleForm = reactive<RuleForm>({
   type: [],
   resource: "",
   desc: "",
+  options: {
+    Station_Id_d: false,
+    Lat: false,
+    Lon: false,
+    Alti: false,
+    PRS_Sea_Avg: false,
+    WIN_S_Max: false,
+    WIN_S_2mi_Avg: false,
+    TEM_Avg: false,
+    TEM_Max: false,
+    TEM_Min: false,
+    GST_Avg: false,
+    PRE_Time_2020: false,
+    SSH: false,
+    CLO_Cov_Avg: false,
+    CLO_Cov_Low_Avg: false,
+    VIS_Min: false,
+  }
 });
 
 const locationOptions = ["Home", "Company", "School"];
@@ -185,11 +248,11 @@ const rules = reactive<FormRules<RuleForm>>({
   ],
 });
 const handleSelect = (key: string, keyPath: string[]) => {
-  activeIndex.value=key
-  if(key==2){
-    getLogs()
-  }else if(key==1){
-    resetForm()
+  activeIndex.value = key;
+  if (key == 2) {
+    getLogs();
+  } else if (key == 1) {
+    resetForm();
   }
   console.log(key, keyPath);
 };
@@ -202,6 +265,7 @@ const submitForm = async (formEl: FormInstance | undefined) => {
       formData.append("start_date", ruleForm.date1);
       formData.append("end_date", ruleForm.date2);
       formData.append("note", ruleForm.desc);
+      formData.append("options",JSON.stringify(ruleForm.options) )
       fetch(serverUrl + "/api/download", {
         method: "POST",
         body: formData,
@@ -213,10 +277,11 @@ const submitForm = async (formEl: FormInstance | undefined) => {
           const a = document.createElement("a");
           a.style.display = "none";
           a.href = url;
-          a.download = ruleForm.name+".zip"; // 下载文件的名称
+          a.download = ruleForm.name + ".zip"; // 下载文件的名称
           document.body.appendChild(a);
           a.click(); // 自动点击链接进行下载
           window.URL.revokeObjectURL(url); // 释放URL
+          resetForm()
         })
         .catch((error) => console.error("Error:", error));
 
@@ -227,37 +292,56 @@ const submitForm = async (formEl: FormInstance | undefined) => {
   });
 };
 
-const resetForm = ()=>{
-  ruleForm.name=""
-  ruleForm.date1=""
-  ruleForm.date2=""
-  ruleForm.desc=""
-}
-
+const resetForm = () => {
+  ruleForm.name = "";
+  ruleForm.date1 = "";
+  ruleForm.date2 = "";
+  ruleForm.desc = "";
+  ruleForm.options={
+    Station_Id_d: false,
+    Lat: false,
+    Lon: false,
+    Alti: false,
+    PRS_Sea_Avg: false,
+    WIN_S_Max: false,
+    WIN_S_2mi_Avg: false,
+    TEM_Avg: false,
+    TEM_Max: false,
+    TEM_Min: false,
+    GST_Avg: false,
+    PRE_Time_2020: false,
+    SSH: false,
+    CLO_Cov_Avg: false,
+    CLO_Cov_Low_Avg: false,
+    VIS_Min: false,
+  }
+};
 
 const options = Array.from({ length: 10000 }).map((_, idx) => ({
   value: `${idx + 1}`,
   label: `${idx + 1}`,
 }));
-const tableData=ref()
-const getLogs=()=>{
+const tableData = ref();
+const getLogs = () => {
   fetch(serverUrl + "/api/logs", {
-        method: "GET",
-      }).then(res=>res.json())
-      .then(res=>{
-        console.log(res);
-        tableData.value=res
-      })
-}
-const del=(row)=>{
+    method: "GET",
+  })
+    .then((res) => res.json())
+    .then((res) => {
+      console.log(res);
+      tableData.value = res;
+    });
+};
+const del = (row) => {
   console.log(row);
-  fetch(serverUrl + "/api/delete_log?line_number="+(row+1), {
-        method: "DELETE",
-      }).then(res=>res.json())
-      .then(res=>{
-        getLogs()
-      })
-}
+  fetch(serverUrl + "/api/delete_log/"+row.id, {
+    method: "DELETE",
+  })
+    .then((res) => res.json())
+    .then((res) => {
+      getLogs();
+    });
+};
 </script>
 
 <style scoped>
@@ -266,14 +350,14 @@ const del=(row)=>{
 }
 .formDiv {
   display: flex;
-  flex-direction:column;
+  flex-direction: column;
   justify-content: flex-start;
-  gap:50px;
+  /* gap:50px; */
   align-items: center;
   box-sizing: border-box;
   padding: 30px;
   background-color: #fff;
-  height: calc(100% - 60px)
+  height: calc(100% - 60px);
 }
 
 .tableDiv {
@@ -282,7 +366,7 @@ const del=(row)=>{
   box-sizing: border-box;
   padding: 30px;
   background-color: #fff;
-  height: calc(100% - 60px)
+  height: calc(100% - 60px);
 }
 </style>
 
