@@ -18,13 +18,13 @@
                     >
 
                         <swiper-slide>
-                            <img class="my_swiper_imgs" src="../../public/imgs/1.jpg" alt=""/>
+                            <img class="my_swiper_imgs" src="../../public/imgs/7.jpg" alt=""/>
                         </swiper-slide>
                         <swiper-slide>
-                            <img class="my_swiper_imgs" src="../../public/imgs/2.jpg" alt=""/>
+                            <img class="my_swiper_imgs" src="../../public/imgs/8.jpg" alt=""/>
                         </swiper-slide>
                         <swiper-slide>
-                            <img class="my_swiper_imgs" src="../../public/imgs/3.jpg" alt=""/>
+                            <img class="my_swiper_imgs" src="../../public/imgs/9.jpg" alt=""/>
                         </swiper-slide>
                     </swiper>
                 </div>
