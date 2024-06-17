@@ -6,7 +6,7 @@ from captcha.image import ImageCaptcha
 from datetime import timedelta
 import datetime
 import requests
-import json 
+import json
 import csv
 import os
 import sys
@@ -15,8 +15,7 @@ import random
 import wv_sql as sql
 from wv_sql import Database
 import email_post as ep
-
-
+from yuce.Y import yuce_func
 
 app = Flask(__name__)
 CORS(app)
@@ -206,8 +205,6 @@ def checkResetToken():
                         })
 
 
-
-
 @app.route('/api/hello', methods=['GET'])
 def hello():
     return jsonify({'message': 'Hello, World!'})
@@ -238,6 +235,20 @@ def captcha():
         return response
     except Exception as e:
         return str(e)
+
+
+@app.route('/upload', methods=['POST'])
+def upload_func():
+    import os
+    file = request.files['file']
+    os.makedirs('temp', exist_ok=True)
+    print(file)
+    print(file.filename)
+    file_path = 'temp/' + file.filename
+    file.save(file_path)
+    res = yuce_func(file_path)
+    # print(res)
+    return dict(code=200,data=res)
 
 
 @app.route('/api/check_captcha', methods=['POST'])
@@ -309,13 +320,13 @@ def get_weather_now():
 
     return jsonify({'message': '天气获取失败',
                     'code': 400
-    })
+                    })
 
 
 @app.route('/api/weather/24h', methods=['GET'])
 def get_weather_hours():
     location = request.args.get('location')
-    
+
     args = {
         'location': location,
         'key': '22da55be85c846dc8a0b57f6ea985808'
@@ -323,16 +334,16 @@ def get_weather_hours():
 
     weather_now = requests.get(f'https://devapi.qweather.com/v7/weather/24h', params=args).json()
     # print(weather_now)
-    
+
     if weather_now['code'] == '200':
         return jsonify({'message': '天气获取成功',
                         'code': 200,
                         'data': weather_now.get('hourly')
                         })
-    
+
     return jsonify({'message': '天气获取失败',
                     'code': 400
-    })
+                    })
 
 
 @app.route('/api/weather/nationwide', methods=['GET'])
@@ -351,33 +362,34 @@ def get_weather_nationwide():
                         'code': 200,
                         'data': weather_now.get('data')
                         })
-    
+
     return jsonify({'message': '天气获取失败',
                     'code': 400
                     })
 
+
 # @app.route('/api/download', methods=['POST'])
 # def download_files():
 #     print(request.form)
-    # zip_name = request.form.get('zip_name')
-    # start_date = request.form.get('start_date')
-    # end_date = request.form.get('end_date')
-    # note = request.form.get('note')
-    #
-    #
-    # if not zip_name or not start_date or not end_date or not note:
-    #     return jsonify({"error": "zip_name, start_date, end_date, and note are required"}), 400
-    #
-    # try:
-    #     # 创建压缩包并记录请求
-    #     zip_filename = create_zip(start_date, end_date, zip_name)
-    #     log_request(zip_name, start_date, end_date, note)
-    #
-    #     # 发送压缩包文件给前端
-    #     return send_file(zip_filename, as_attachment=True)
-    # except Exception as e:
-    #     print(e)
-    #     return jsonify({"error": str(e)}), 500
+# zip_name = request.form.get('zip_name')
+# start_date = request.form.get('start_date')
+# end_date = request.form.get('end_date')
+# note = request.form.get('note')
+#
+#
+# if not zip_name or not start_date or not end_date or not note:
+#     return jsonify({"error": "zip_name, start_date, end_date, and note are required"}), 400
+#
+# try:
+#     # 创建压缩包并记录请求
+#     zip_filename = create_zip(start_date, end_date, zip_name)
+#     log_request(zip_name, start_date, end_date, note)
+#
+#     # 发送压缩包文件给前端
+#     return send_file(zip_filename, as_attachment=True)
+# except Exception as e:
+#     print(e)
+#     return jsonify({"error": str(e)}), 500
 
 @app.route('/api/weather/cityTemperatureRank', methods=['GET'])
 def get_city_list_by_temperature():
@@ -386,6 +398,7 @@ def get_city_list_by_temperature():
                     'code': 200,
                     'data': result
                     })
+
 
 @app.route('/api/download', methods=['POST'])
 def download_files():
@@ -401,12 +414,12 @@ def download_files():
     #     return jsonify({'error': 'Missing required parameters'}), 400
     #
     db = Database()
-    raw_data,fields = fetch_data(db, start_date, end_date, options)
+    raw_data, fields = fetch_data(db, start_date, end_date, options)
 
     if not raw_data:
         return jsonify({'error': 'No data found for the given date range'}), 404
 
-    file_names = write_txt_files(raw_data,fields)
+    file_names = write_txt_files(raw_data, fields)
     zip_buffer = create_zip_file(file_names, zip_name)
     # 将下载记录写入数据库
     log_download(db, zip_name, start_date, end_date, note, options)
@@ -431,6 +444,7 @@ def get_logs():
     cursor.close()
     connection.close()
     return jsonify(logs)
+
 
 @app.route('/api/weather/newsList', methods=['GET'])
 def get_news_list_by_page():
@@ -466,6 +480,7 @@ def get_news_by_id():
     except ValueError:
         return jsonify({'error': '非法的入参'}), 400
 
+
 @app.route('/api/delete_log/<int:log_id>', methods=['DELETE'])
 def delete_download_log(log_id):
     db = Database()
@@ -492,5 +507,4 @@ def delete_download_log(log_id):
 
 
 if __name__ == '__main__':
-
     app.run(debug=False, port=9001, threaded=True)
