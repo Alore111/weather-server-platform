@@ -60,6 +60,17 @@
                                 <span style="font-weight: 600;">气温预测</span>
                             </el-menu-item>
                         </router-link>
+                        <el-sub-menu v-if="user_info && user_info.role_id == 2" index="5">
+                            <template #title>
+                                <el-icon>
+                                    <i class="fas fa-user-shield"></i>
+                                </el-icon>
+                                <span style="font-weight: 600;">系统管理</span>
+                            </template>
+                            <router-link to="/console/adminUser">
+                                <el-menu-item index="5-1">账号管理</el-menu-item>
+                            </router-link>
+                        </el-sub-menu>
                     </el-menu>
                     <div
                         style="text-align: center; transform: scale(0.8); bottom: 20px; position: fixed; width: 200px;">
@@ -68,7 +79,6 @@
                             <span class="fs-4 text-body-color">Weather Vista</span>
                         </router-link>
                     </div>
-
                 </el-aside>
                 <el-main v-loading="menuMainLoading">
                     <router-view></router-view>
@@ -76,8 +86,6 @@
             </el-container>
         </el-container>
     </div>
-
-
 </template>
 
 <script setup>
@@ -92,7 +100,15 @@ const announcementDialogVisible = ref(true)
 checkLogin()
 handleResize()
 
-
+const user_info = ref(null);
+const storedUserInfo = localStorage.getItem('user_info');
+if (storedUserInfo) {
+    try {
+        user_info.value = JSON.parse(storedUserInfo);
+    } catch (error) {
+        console.error('Failed to parse user_info:', error);
+    }
+}
 
 function handleBeforeRouteUpdate() {
     // 在子页面路由更新前将 menuMainLoading 设置为 true
@@ -108,8 +124,7 @@ function checkLogin() {
             type: 'warning',
         })
         window.location.href = '/login'
-    }
-    else {
+    } else {
         const $serverUrl = appContext.config.globalProperties.$serverUrl
         fetch($serverUrl + '/api/checkLoginStatus', {
             method: 'GET',
@@ -139,8 +154,6 @@ function checkLogin() {
             })
     }
 }
-
-
 
 // 监听窗口大小变化
 function handleResize() {
@@ -175,8 +188,6 @@ function userLogout() {
     window.location.href = '/login'
 }
 </script>
-
-
 
 <style scoped>
 .collapse-btn {

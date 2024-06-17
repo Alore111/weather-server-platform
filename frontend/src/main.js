@@ -22,7 +22,6 @@ app.config.globalProperties.$serverUrl = 'http://127.0.0.1:9001'
 
 app.use(router)
 app.use(ElementPlus)
-app.use(ElementPlus)
 app.use(IndexBar);
 app.use(IndexAnchor);
 app.use(Cell);

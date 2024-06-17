@@ -117,6 +117,176 @@ def authenticate_user(username_or_qq, password):
             print(f"认证失败: {e}")
             return False
 
+# 添加新用户
+def add_user(username, password, qq, role_id=1):
+    database = Database()
+    with database.connect() as connection:
+        try:
+            with connection.cursor() as cursor:
+                if check_username_exists(cursor, username):
+                    return {"msg": "用户名已存在"}
+
+                hashed_password = hash_password(password)
+                register_time = datetime.now()
+                sql = """INSERT INTO users 
+                         (username, qq, email, pwd, register_time, role_id, login_times, request_times) 
+                         VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"""
+                cursor.execute(sql, (username, qq, f"{qq}@qq.com", hashed_password, register_time, role_id, 0, 0))
+            connection.commit()
+            return {"msg": "用户添加成功"}
+
+        except pymysql.Error as e:
+            print(f"用户添加失败: {e}")
+            return {"msg": "用户添加失败"}
+
+
+# 更新用户信息
+def update_user(user_id, username=None, qq=None, password=None, role_id=None):
+    database = Database()
+    with database.connect() as connection:
+        try:
+            with connection.cursor() as cursor:
+                updates = []
+                params = []
+
+                if username:
+                    updates.append("username = %s")
+                    params.append(username)
+                if qq:
+                    updates.append("qq = %s")
+                    params.append(qq)
+                if password:
+                    updates.append("pwd = %s")
+                    params.append(hash_password(password))
+                if role_id is not None:
+                    updates.append("role_id = %s")
+                    params.append(role_id)
+
+                params.append(user_id)
+                sql = f"UPDATE users SET {', '.join(updates)} WHERE id = %s"
+                cursor.execute(sql, params)
+                connection.commit()
+                return {"msg": "用户信息更新成功"}
+
+        except pymysql.Error as e:
+            print(f"用户信息更新失败: {e}")
+            return {"msg": "用户信息更新失败"}
+
+
+# 删除用户
+def delete_user(user_id):
+    database = Database()
+    with database.connect() as connection:
+        try:
+            with connection.cursor() as cursor:
+                sql = "DELETE FROM users WHERE id = %s"
+                cursor.execute(sql, (user_id,))
+                connection.commit()
+                return {"msg": "用户删除成功"}
+
+        except pymysql.Error as e:
+            print(f"用户删除失败: {e}")
+            return {"msg": "用户删除失败"}
+
+
+# 获取所有用户
+def get_all_users():
+    database = Database()
+    with database.connect() as connection:
+        try:
+            with connection.cursor() as cursor:
+                sql = "SELECT id, username, qq, role_id, login_times, request_times FROM users"
+                cursor.execute(sql)
+                users = cursor.fetchall()
+                return users
+
+        except pymysql.Error as e:
+            print(f"获取所有用户失败: {e}")
+            return {"msg": "获取所有用户失败"}
+
+
+# 按ID获取用户
+def get_user_by_id(user_id):
+    database = Database()
+    with database.connect() as connection:
+        try:
+            with connection.cursor() as cursor:
+                sql = "SELECT id, username, qq, role_id, login_times, request_times FROM users WHERE id = %s"
+                cursor.execute(sql, (user_id,))
+                user = cursor.fetchone()
+                if user:
+                    return user
+                else:
+                    return {"msg": "用户不存在"}
+
+        except pymysql.Error as e:
+            print(f"获取用户失败: {e}")
+            return {"msg": "获取用户失败"}
+
+
+# 按用户名搜索用户
+def search_users_by_username(username):
+    database = Database()
+    with database.connect() as connection:
+        try:
+            with connection.cursor() as cursor:
+                sql = "SELECT id, username, qq, role_id, login_times, request_times FROM users WHERE username LIKE %s"
+                cursor.execute(sql, (f"%{username}%",))
+                users = cursor.fetchall()
+                return users
+
+        except pymysql.Error as e:
+            print(f"搜索用户失败: {e}")
+            return {"msg": "搜索用户失败"}
+
+
+# 按角色获取用户
+def get_users_by_role(role_id):
+    database = Database()
+    with database.connect() as connection:
+        try:
+            with connection.cursor() as cursor:
+                sql = "SELECT id, username, qq, role_id, login_times, request_times FROM users WHERE role_id = %s"
+                cursor.execute(sql, (role_id,))
+                users = cursor.fetchall()
+                return users
+
+        except pymysql.Error as e:
+            print(f"获取用户失败: {e}")
+            return {"msg": "获取用户失败"}
+
+
+# 更新用户角色
+def update_user_role(user_id, new_role_id):
+    database = Database()
+    with database.connect() as connection:
+        try:
+            with connection.cursor() as cursor:
+                sql = "UPDATE users SET role_id = %s WHERE id = %s"
+                cursor.execute(sql, (new_role_id, user_id))
+                connection.commit()
+                return {"msg": "用户角色更新成功"}
+
+        except pymysql.Error as e:
+            print(f"更新用户角色失败: {e}")
+            return {"msg": "更新用户角色失败"}
+
+
+# 禁用或启用用户
+def toggle_user_status(user_id, is_active):
+    database = Database()
+    with database.connect() as connection:
+        try:
+            with connection.cursor() as cursor:
+                sql = "UPDATE users SET is_active = %s WHERE id = %s"
+                cursor.execute(sql, (is_active, user_id))
+                connection.commit()
+                return {"msg": "用户状态更新成功"}
+
+        except pymysql.Error as e:
+            print(f"用户状态更新失败: {e}")
+            return {"msg": "用户状态更新失败"}
+
 
 # 刷新在线用户登录时间
 def refersh_user_login_time(user_id):

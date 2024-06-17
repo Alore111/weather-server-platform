@@ -205,6 +205,136 @@ def checkResetToken():
                         })
 
 
+@app.route('/api/add_user', methods=['POST'])
+def add_user():
+    data = request.get_json()
+    username = data.get('username')
+    password = data.get('password')
+    qq = data.get('qq')
+    role_id = data.get('role_id', 1)
+
+    if not username or not password or not qq:
+        return jsonify({'message': '参数不完整', 'code': 400})
+
+    response = sql.add_user(username, password, qq, role_id)
+    return jsonify({'message': response['msg'], 'code': 200 if response['msg'] == '用户添加成功' else 400})
+
+
+@app.route('/api/update_user', methods=['POST'])
+def update_user():
+    data = request.get_json()
+    user_id = data.get('id')
+    username = data.get('username')
+    qq = data.get('qq')
+    password = data.get('password')
+    role_id = data.get('role_id')
+
+    if not user_id:
+        return jsonify({'message': '用户ID缺失', 'code': 400})
+
+    response = sql.update_user(user_id, username, qq, password, role_id)
+    return jsonify({'message': response['msg'], 'code': 200 if response['msg'] == '用户信息更新成功' else 400})
+
+
+@app.route('/api/delete_user', methods=['POST'])
+def delete_user():
+    data = request.get_json()
+    user_id = data.get('user_id')
+
+    if not user_id:
+        return jsonify({'message': '用户ID缺失', 'code': 400})
+
+    response = sql.delete_user(user_id)
+    return jsonify({'message': response['msg'], 'code': 200 if response['msg'] == '用户删除成功' else 400})
+
+
+@app.route('/api/get_all_users', methods=['GET'])
+def get_all_users():
+    users = sql.get_all_users()
+    if 'msg' in users:
+        return jsonify({'message': users['msg'], 'code': 400})
+    return jsonify({'users': users, 'code': 200})
+
+
+@app.route('/api/get_user_by_id', methods=['POST'])
+def get_user_by_id():
+    data = request.get_json()
+    user_id = data.get('user_id')
+
+    if not user_id:
+        return jsonify({'message': '用户ID缺失', 'code': 400})
+
+    user = sql.get_user_by_id(user_id)
+    if 'msg' in user:
+        return jsonify({'message': user['msg'], 'code': 400})
+    return jsonify({'user': user, 'code': 200})
+
+
+@app.route('/api/search_users_by_username', methods=['POST'])
+def search_users_by_username():
+    data = request.get_json()
+    username = data.get('username')
+
+    if not username:
+        return jsonify({'message': '用户名缺失', 'code': 400})
+
+    users = sql.search_users_by_username(username)
+    if 'msg' in users:
+        return jsonify({'message': users['msg'], 'code': 400})
+    return jsonify({'users': users, 'code': 200})
+
+
+@app.route('/api/get_users_by_role', methods=['POST'])
+def get_users_by_role():
+    data = request.get_json()
+    role_id = data.get('role_id')
+
+    if not role_id:
+        return jsonify({'message': '角色ID缺失', 'code': 400})
+
+    users = sql.get_users_by_role(role_id)
+    if 'msg' in users:
+        return jsonify({'message': users['msg'], 'code': 400})
+    return jsonify({'users': users, 'code': 200})
+
+
+@app.route('/api/update_user_role', methods=['POST'])
+def update_user_role():
+    data = request.get_json()
+    user_id = data.get('user_id')
+    new_role_id = data.get('new_role_id')
+
+    if not user_id or not new_role_id:
+        return jsonify({'message': '参数不完整', 'code': 400})
+
+    response = sql.update_user_role(user_id, new_role_id)
+    return jsonify({'message': response['msg'], 'code': 200 if response['msg'] == '用户角色更新成功' else 400})
+
+
+@app.route('/api/toggle_user_status', methods=['POST'])
+def toggle_user_status():
+    data = request.get_json()
+    user_id = data.get('user_id')
+    is_active = data.get('is_active')
+
+    if not user_id or is_active is None:
+        return jsonify({'message': '参数不完整', 'code': 400})
+
+    response = sql.toggle_user_status(user_id, is_active)
+    return jsonify({'message': response['msg'], 'code': 200 if response['msg'] == '用户状态更新成功' else 400})
+
+
+
+
+
+
+
+
+
+
+
+
+
 @app.route('/api/hello', methods=['GET'])
 def hello():
     return jsonify({'message': 'Hello, World!'})

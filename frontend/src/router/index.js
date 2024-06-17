@@ -80,6 +80,11 @@ const router = createRouter({
           component: () => import('../views/TemForecastView.vue')
         },
         {
+          path: 'adminUser',
+          name: 'console-adminUser',
+          component: () => import("../views/AdminUser.vue")
+        },
+        {
           path: '/searchWeatherByCity',
           name: 'searchWeatherByCity',
           component: () => import('../views/migrate/Home/HomeView.vue')
@@ -92,7 +97,7 @@ const router = createRouter({
         }, {
           path: '/news/:id',
           component: () => import("../views/NewsDetail.vue")
-        }
+        }, 
       ]
     }
   ]
