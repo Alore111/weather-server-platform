@@ -1,10 +1,12 @@
 <template>
     <div>
         <el-button type="primary" @click="showAddUserForm">添加用户</el-button>
-        <el-table :data="users" style="width: 100%" v-loading="loading">
-            <el-table-column prop="id" label="ID" width="50"></el-table-column>
-            <el-table-column prop="username" label="用户名"></el-table-column>
-            <el-table-column prop="qq" label="QQ"></el-table-column>
+        <el-input v-model="search" placeholder="搜索用户名" style="width: 200px; margin: 10px 0;"
+            @input="fetchUsers"></el-input>
+        <el-table :data="filteredUsers" style="width: 100%" v-loading="loading" @sort-change="sortChange">
+            <el-table-column prop="username" label="用户名" sortable></el-table-column>
+            <el-table-column prop="qq" label="QQ" sortable></el-table-column>
+            <el-table-column prop="role" label="角色" :formatter="formatRole" sortable></el-table-column>
             <el-table-column label="操作" width="180">
                 <template #default="scope">
                     <el-button size="mini" @click="editUser(scope.row)">编辑</el-button>
@@ -12,6 +14,8 @@
                 </template>
             </el-table-column>
         </el-table>
+        <el-pagination v-if="users.length" background layout="prev, pager, next" :total="users.length"
+            :page-size="pageSize" @current-change="handlePageChange"></el-pagination>
 
         <el-dialog :title="isEdit ? '编辑用户' : '添加用户'" v-model="dialogVisible">
             <el-form :model="selectedUser" label-width="120px">
@@ -53,8 +57,30 @@ export default {
                 qq: '',
                 role_id: 1
             },
-            isEdit: false
+            isEdit: false,
+            search: '',
+            pageSize: 10,
+            currentPage: 1,
+            sort: { prop: '', order: '' }
         };
+    },
+    computed: {
+        filteredUsers() {
+            let filtered = this.users.filter(user =>
+                user.username.toLowerCase().includes(this.search.toLowerCase())
+            );
+
+            if (this.sort.prop) {
+                filtered.sort((a, b) => {
+                    const order = this.sort.order === 'ascending' ? 1 : -1;
+                    if (a[this.sort.prop] < b[this.sort.prop]) return -1 * order;
+                    if (a[this.sort.prop] > b[this.sort.prop]) return 1 * order;
+                    return 0;
+                });
+            }
+
+            return filtered.slice((this.currentPage - 1) * this.pageSize, this.currentPage * this.pageSize);
+        }
     },
     methods: {
         async fetchUsers() {
@@ -80,7 +106,7 @@ export default {
             this.dialogVisible = true;
         },
         editUser(user) {
-            this.selectedUser = { ...user, password: '' };  // 清除密码字段，确保安全性
+            this.selectedUser = { ...user, password: '' }; // 清除密码字段，确保安全性
             this.isEdit = true;
             this.dialogVisible = true;
         },
@@ -127,6 +153,16 @@ export default {
                 console.error('Error submitting form:', error);
                 ElMessage.error(this.isEdit ? '更新失败' : '添加失败');
             }
+        },
+        formatRole(row) {
+            return row.role_id === 1 ? '用户' : '管理员';
+        },
+        handlePageChange(page) {
+            this.currentPage = page;
+        },
+        sortChange({ prop, order }) {
+            this.sort = { prop, order };
+            this.fetchUsers();
         }
     },
     mounted() {
@@ -136,5 +172,5 @@ export default {
 </script>
 
 <style scoped>
-/* 你可以在这里添加组件特定的样式 */
+
 </style>
