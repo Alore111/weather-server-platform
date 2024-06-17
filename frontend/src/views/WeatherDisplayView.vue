@@ -106,11 +106,11 @@ export default {
     },
     methods: {
         updateWeatherData() {
-            this.locationText = this.locationTextTemp;
-            return fetch(this.$serverUrl + `/api/weather/checkLocation?location=${this.locationText}`)
+            return fetch(this.$serverUrl + `/api/weather/checkLocation?location=${this.locationTextTemp}`)
                 .then(response => response.json())
                 .then(data => {
                     if (data.code === 200) {
+                        this.locationText = this.locationTextTemp;
                         this.location_id = data.location_id;
                         this.getWeatherData(data.location_id);
                     } else {
