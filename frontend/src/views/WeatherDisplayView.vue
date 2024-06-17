@@ -246,7 +246,7 @@ export default {
     border-radius: 10px;
 }
 
-.block {
+.weather-display .block {
     background-color: #34495e;
     padding: 20px;
     border-radius: 10px;
